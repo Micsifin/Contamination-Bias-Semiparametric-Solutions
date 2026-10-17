@@ -1,8 +1,12 @@
 ###############################################################################
-# Topic: Scientific Iniciation in Econometrics
-# Advisor: Vítor Augusto Possebom
-# Autor: Michel Csillag Finger
-# Goal: Run all regressions and save respective MulTE objects
+# This code runs all the regressions in the paper.
+# It also runs all the MulTE analyses, using the package provided in
+# Kolesar (2024).
+# Naming and numbering of variables in the code reflects previous iterations
+# with more articles, hence the numbering is not sequential.
+# The regressions that are also in Goldsmith Pinkham, Hull and Kolesár (2024)
+# were adapted from their replication package.
+# This code was made with the help of GitHub Copilot.
 ###############################################################################
 # Organize the working environment
 ###############################################################################
@@ -15,7 +19,7 @@ for(lib in install.lib) install.packages(lib,dependencies=TRUE)
 sapply(load.lib, require, character=TRUE)
 remove(install.lib, lib, load.lib)
 
-setwd("/home/micsifin/transfer/Estudos/FGV-EESP/IC/Codigo")
+#setwd("/home/micsifin/transfer/Estudos/FGV-EESP/IC/Replication_Package")
 
 # Functions to load
 source("Functions.R")
@@ -37,14 +41,6 @@ source("Functions.R")
 
 #' 4- Saving Output and Cleaning memory:
 #' exports MulTE objects to .RData files, and removes objects from memory.
-
-
-
-###############################################################################
-# Article 2 - When Doctors Fall From the Sky -----------
-###############################################################################
-#' No continuous covariates in tables 2 and 3, only categorical, and strata.
-#' Result: splines do not apply. Skipping this analysis
 
 ###############################################################################
 # Article 3 - Social Preferences and Gift Exchange at Work - Table 1 ----------
@@ -149,17 +145,15 @@ a3_c3_log_spls_m <- multe_spline_regression(
 
 #' 4- Saving Output and Cleaning memory
 
-save(
-    a3_c2_abs_m, a3_c2_abs_spls_m,
-    a3_c2_log_m, a3_c2_log_spls_m,
-    a3_c3_abs_m, a3_c3_abs_spls_m,
-    a3_c3_log_m, a3_c3_log_spls_m,
+save(a3_c2_abs_m, a3_c2_abs_spls_m, a3_c2_log_m, a3_c2_log_spls_m,
+    a3_c3_abs_m, a3_c3_abs_spls_m, a3_c3_log_m, a3_c3_log_spls_m,
     file = "MulTE/Art_3.RData"
 )
 
 rm(a3_c2_abs_m, a3_c2_abs_spls_m, a3_c2_log_m, a3_c2_log_spls_m,
     a3_c3_abs_m, a3_c3_abs_spls_m, a3_c3_log_m, a3_c3_log_spls_m,
-    art_3_fp, art_3_covs, art_3_df, art_3_spline_df, art_3_df_9_10)
+    art_3_fp, art_3_covs, art_3_df, art_3_spline_df, art_3_df_9_10,
+    clean_art3)
 
 
 ###############################################################################
@@ -175,12 +169,8 @@ a8_pB_depvar <- "p_index_s3"
 
 # Treatment and covariates
 art_8_cov_cont <- c("age", "age2", "willingrisk1to10", "plitscore", "pricechange_m16")
-
 a8_tc <- "treat + right_2013 + left_2013 + as.factor(block13) + male + postsecondary + BA_student + college_grad + married + tradestock6all + r_trad + r_relig + r_ultra + g_jerusalem + g_north + g_haifa + g_telaviv + g_south + g_wb + as.factor(newses) + patient + "
-
 a8_c1_cont <- c("age", "age2", "willingrisk1to10", "plitscore")
-a8_c5_cont <- c("age", "age2", "willingrisk1to10", "plitscore", "pricechange_m16")
-
 
 #' 2 - Creating Splines
 art_8_df <- clean_art8(art_8_fp)
@@ -209,33 +199,6 @@ a8_pAc1_spls_m <- multe_spline_regression(
 #' Failed overlap: as.factor(block13)104
 #' The following variables have no within-treatment variation and are dropped: left_2013
 
-
-# Panel A - Column 5
-a8_pAc5_m <- multe_simple_regression(
-    df = art_8_spline_df,
-    depvar = a8_pA_depvar,
-    treat_categ = a8_tc,
-    treat_name = "treat",
-    cont_vars = a8_c5_cont
-)
-# Warning messages:
-# 1: In x * ws^2 * cw * ro$residuals :
-#  longer object length is not a multiple of shorter object length
-# e mais 7 dessas
-#' => não tem problema!
-#' houve os mesmos erros que a8pAc1, porém a diferença é aqui
-#' dropparam pricechange_m16, que é a única variável que difere entre as regressões
-
-a8_pAc5_spls_m <- multe_spline_regression(
-    df = art_8_spline_df,
-    depvar = a8_pA_depvar,
-    treat_categ = a8_tc,
-    treat_name = "treat",
-    cont_vars = a8_c5_cont
-)
-# Error in solve.default(He[idx1, idx1, drop = FALSE], He[idx1, -idx1, drop = FALSE]) :
-#  Lapack routine dgesv: system is exactly singular: U[1,1] = 0
-
 # Panel B - Column 1
 a8_pBc1_m <- multe_simple_regression(
     df = art_8_spline_df,
@@ -257,48 +220,13 @@ a8_pBc1_spls_m <- multe_spline_regression(
 #' as.factor(block13)104 failed overlap - dropped;
 #' The following variables have no within-treatment variation and are dropped: left_2013
 
-# Panel B - Column 5
-a8_pBc5_m <- multe_simple_regression(
-    df = art_8_spline_df,
-    depvar = a8_pB_depvar,
-    treat_categ = a8_tc,
-    treat_name = "treat",
-    cont_vars = a8_c5_cont
-)
-# Warning messages:
-# 1: In x * ws^2 * cw * ro$residuals :
-#  longer object length is not a multiple of shorter object length
-# e mais 7 dessas
-
-a8_pBc5_spls_m <- multe_spline_regression(
-    df = art_8_spline_df,
-    depvar = a8_pB_depvar,
-    treat_categ = a8_tc,
-    treat_name = "treat",
-    cont_vars = a8_c5_cont
-)
-# Error in solve.default(He[idx1, idx1, drop = FALSE], He[idx1, -idx1, drop = FALSE]) : 
-#  Lapack routine dgesv: system is exactly singular: U[1,1] = 0
-
 #' 4- Saving Output and Cleaning memory
-save(
-    a8_pAc1_m, a8_pAc1_spls_m,
-    a8_pBc1_m, a8_pBc1_spls_m,
-    #a8_pAc5_m, a8_pAc5_spls_m,
-    #a8_pBc5_m, a8_pBc5_spls_m,
-    # Took c5 out as it drops the only additional variable
-    file = "MulTE/Art_8.RData"
-)
+save(a8_pAc1_m, a8_pAc1_spls_m, a8_pBc1_m, a8_pBc1_spls_m, file = "MulTE/Art_8.RData")
 
-rm(
-    a8_pAc1_m, a8_pAc1_spls_m,
-    a8_pAc5_m, a8_pAc5_spls_m,
-    a8_pBc1_m, a8_pBc1_spls_m,
-    a8_pBc5_m, a8_pBc5_spls_m,
-    art_8_df, art_8_spline_df,
-    art_8_fp, art_8_cov_cont,
-    a8_pA_depvar, a8_pB_depvar,
-    a8_tc, a8_c1_cont, a8_c5_cont
+rm(a8_pAc1_m, a8_pAc1_spls_m, a8_pBc1_m, a8_pBc1_spls_m,
+   art_8_df, art_8_spline_df, art_8_fp, art_8_cov_cont,
+   a8_pA_depvar, a8_pB_depvar, a8_tc, a8_c1_cont, a8_c5_cont,
+   clean_art8
 )
 
 
@@ -341,7 +269,8 @@ save(a10_m, a10_spl_m, file = "MulTE/Art_10.RData")
 
 # Remove used regressions to free up memory and moving on to next article
 rm(a10, a10_m, a10_spls, a10_spl, a10_spl_m, art_10_df,
-   art_10_spline_df, art_10_fp, art_10_cov_cont, a10_dtc)
+   art_10_spline_df, art_10_fp, art_10_cov_cont, a10_dtc,
+   clean_art10)
 
 
 ###############################################################################
@@ -350,7 +279,6 @@ rm(a10, a10_m, a10_spls, a10_spl, a10_spl_m, art_10_df,
 
 #' 1 - Setup
 art_13_t2_fp <- "Data/13_T2_Anon_Data_clean.dta"
-art_13_t3_4_fp <- "Data/13_T3_4_Anon_Data_clean_panel.dta"
 
 art_13_cov_cont <- c("Age", "BaselineCredits")
 
@@ -359,19 +287,6 @@ art_13_cov_cont <- c("Age", "BaselineCredits")
 art_13_t2_df <- clean_art13(art_13_t2_fp, 0)
 art_13_t2_spline_df <- create_splines(data = art_13_t2_df, covariates = art_13_cov_cont)
 a13_t2_spl_df_c1234 <- subset(art_13_t2_spline_df, Valid == 1 & Demographics == 1)
-a13_t2_spl_df_c6 <- subset(a13_t2_spl_df_c1234, Fall == 0)
-
-# Tables 3 and 4 data
-art_13_t3_4_df <- clean_art13(art_13_t3_4_fp, 1)
-art_13_t3_4_df <- art_13_t3_4_df %>%
-    mutate(TakeTest = ifelse(!is.na(Percentage) & Percentage > 0, 1, 0))
-art_13_t3_4_spline_df <- create_splines(data = art_13_t3_4_df, covariates = art_13_cov_cont)
-
-# Subsetting the dataframe for analyses in Tables 3 and 4
-a13_t3_spl_df <- subset(art_13_t3_4_spline_df, Valid == 1 & Demographics == 1 & TakeTest == 1)
-a13_t4_df_c2 <- subset(art_13_t3_4_spline_df, Demographics == 1)
-a13_t4_df_c3 <- subset(art_13_t3_4_spline_df, Demographics == 1 & Valid == 1)
-a13_t4_df_c5 <- subset(art_13_t3_4_spline_df, Demographics == 1 & Completion == 1)
 
 #' 3 - Regressions
 
@@ -398,225 +313,10 @@ a13_t2_c2_spls_m <- multe_spline_regression(
     cluster_var = a13_t2_spl_df_c1234$TeacherID, na_action = TRUE
 ) # Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1 as no within-treat variation
 
-save(a13_t2_c2_m, a13_t2_c2_spls_m, file = "MulTE/Art_13_v2.RData")
-
-
-# Table 2 - Column 4
-a13_t2_c4_tc <- a13_t2_c2_tc
-a13_t2_c4_cont <- a13_t2_c2_cont
-
-a13_t2_c4_m <- multe_simple_regression(
-    df = a13_t2_spl_df_c1234,
-    depvar = "ZPercentage",
-    treat_categ = a13_t2_c4_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t2_c4_cont,
-    cluster = TRUE,
-    cluster_var = a13_t2_spl_df_c1234$TeacherID, na_action = TRUE
-)# Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1 as no variation
-a13_t2_c4_spls_m <- multe_spline_regression(
-    df = a13_t2_spl_df_c1234,
-    depvar = "ZPercentage",
-    treat_categ = a13_t2_c4_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t2_c4_cont,
-    cluster = TRUE,
-    cluster_var = a13_t2_spl_df_c1234$TeacherID, na_action = TRUE
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1 as no within-treat variation
-
-
-# Table 2 - Column 6
-a13_t2_c6_tc <- "TreatmentGroup + as.factor(FullTime) + as.factor(CoReq) + as.factor(White) + as.factor(Male) + as.factor(LowDiscount) + as.factor(LowCommit) + as.factor(DepartmentCode) + "
-a13_t2_c6_cont <- c("Age", "BaselineCredits")
-
-a13_t2_c6_m <- multe_simple_regression(
-    df = a13_t2_spl_df_c6,
-    depvar = "ZPercentage",
-    treat_categ = a13_t2_c6_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t2_c6_cont,
-    cluster = TRUE,
-    cluster_var = a13_t2_spl_df_c6$TeacherID, na_action = TRUE
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(LowCommit)1 as no variation
-a13_t2_c6_spls_m <- multe_spline_regression(
-    df = a13_t2_spl_df_c6,
-    depvar = "ZPercentage",
-    treat_categ = a13_t2_c6_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t2_c6_cont,
-    cluster = TRUE,
-    cluster_var = a13_t2_spl_df_c6$TeacherID, na_action = TRUE
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(LowCommit)1 as no within-treat variation
-
-
-# Table 3 - Column 6
-a13_t3_c6_tc <- "TreatmentGroup + as.factor(FullTime) + as.factor(CoReq) + as.factor(Fall) + as.factor(White) + as.factor(Male) + as.factor(LowDiscount) + as.factor(LowCommit) + as.factor(DepartmentCode) + "
-a13_t3_c6_cont <- c("Age", "BaselineCredits")
-
-a13_t3_c6_m <- multe_simple_regression(
-    df = a13_t3_spl_df,
-    depvar = "ZPercentage",
-    treat_categ = a13_t3_c6_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t3_c6_cont,
-    cluster = TRUE,
-    cluster_var = a13_t3_spl_df$TeacherID
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1
-a13_t3_c6_spls_m <- multe_spline_regression(
-    df = a13_t3_spl_df,
-    depvar = "ZPercentage",
-    treat_categ = a13_t3_c6_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t3_c6_cont,
-    cluster = TRUE,
-    cluster_var = a13_t3_spl_df$TeacherID
-) #Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1
-
-
-# Table 4 - Column 2
-a13_t4_c2_tc <- "TreatmentGroup + as.factor(FullTime) + as.factor(CoReq) + as.factor(Fall) + as.factor(White) + as.factor(Male) + as.factor(LowDiscount) + as.factor(LowCommit) + as.factor(DepartmentCode) + "
-a13_t4_c2_cont <- c("Age", "BaselineCredits")
-
-a13_t4_c2_m <- multe_simple_regression(
-    df = art_13_t4_df_c2,
-    depvar = "ZGradePoint",
-    treat_categ = a13_t4_c2_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t4_c2_cont,
-    cluster = TRUE,
-    cluster_var = art_13_t4_df_c2$TeacherID
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1
-a13_t4_c2_spls_m <- multe_spline_regression(
-    df = art_13_t4_df_c2,
-    depvar = "ZGradePoint",
-    treat_categ = a13_t4_c2_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t4_c2_cont,
-    cluster = TRUE,
-    cluster_var = art_13_t4_df_c2$TeacherID
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1
-
-
-# Table 4 - Column 3
-a13_t4_c3_tc <- a13_t4_c2_tc
-a13_t4_c3_cont <- a13_t4_c2_cont
-
-a13_t4_c3_m <- multe_simple_regression(
-    df = art_13_t4_df_c3,
-    depvar = "ZNonExamPct",
-    treat_categ = a13_t4_c3_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t4_c3_cont,
-    cluster = TRUE,
-    cluster_var = art_13_t4_df_c3$TeacherID, na_action = TRUE
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1
-a13_t4_c3_spls_m <- multe_spline_regression(
-    df = art_13_t4_df_c3,
-    depvar = "ZNonExamPct",
-    treat_categ = a13_t4_c3_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t4_c3_cont,
-    cluster = TRUE,
-    cluster_var = art_13_t4_df_c3$TeacherID, na_action = TRUE
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1
-
-
-# Table 4 - Column 5
-a13_t4_c5_tc <- a13_t4_c2_tc
-a13_t4_c5_cont <- a13_t4_c2_cont
-
-a13_t4_c5_m <- multe_simple_regression(
-    df = art_13_t4_df_c5,
-    depvar = "ZGradePoint",
-    treat_categ = a13_t4_c5_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t4_c5_cont,
-    cluster = TRUE,
-    cluster_var = art_13_t4_df_c5$TeacherID
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1
-a13_t4_c5_spls_m <- multe_spline_regression(
-    df = art_13_t4_df_c5,
-    depvar = "ZGradePoint",
-    treat_categ = a13_t4_c5_tc,
-    treat_name = "TreatmentGroup",
-    cont_vars = a13_t4_c5_cont,
-    cluster = TRUE,
-    cluster_var = art_13_t4_df_c5$TeacherID
-) # Fail overlap, drop as.factor(CoReq)1, as.factor(Fall)1
-
-
 #' 4 - Saving Output and Cleaning memory
-#dir.create("MulTE", showWarnings = FALSE, recursive = TRUE)
-art_13_outfile <- "MulTE/Art_13.RData"
-
-save(
-    a13_t2_c2_m,
-    a13_t2_c2_spls_m,
-    a13_t2_c4_m,
-    a13_t2_c4_spls_m,
-    a13_t2_c6_m,
-    a13_t2_c6_spls_m,
-    a13_t3_c6_m,
-    a13_t3_c6_spls_m,
-    a13_t4_c2_m,
-    a13_t4_c2_spls_m,
-    a13_t4_c3_m,
-    a13_t4_c3_spls_m,
-    a13_t4_c5_m,
-    a13_t4_c5_spls_m,
-    file = art_13_outfile
-)
-
-rm(
-    art_13_t2_fp,
-    art_13_t3_4_fp,
-    art_13_cov_cont,
-    art_13_t2_df,
-    art_13_t2_spline_df,
-    art_13_t3_4_df,
-    art_13_t3_4_spline_df,
-    a13_t2_spl_df_c1234,
-    a13_t2_spl_df_c6,
-    a13_t3_spl_df,
-    art_13_t4_df_c2,
-    art_13_t4_df_c3,
-    art_13_t4_df_c5,
-    a13_t2_c2_tc,
-    a13_t2_c2_cont,
-    a13_t2_c4_tc,
-    a13_t2_c4_cont,
-    a13_t2_c6_tc,
-    a13_t2_c6_cont,
-    a13_t3_c6_tc,
-    a13_t3_c6_cont,
-    a13_t4_c2_tc,
-    a13_t4_c2_cont,
-    a13_t4_c3_tc,
-    a13_t4_c3_cont,
-    a13_t4_c5_tc,
-    a13_t4_c5_cont,
-    a13_t2_c1_m,
-    a13_t2_c1_spls_m,
-    a13_t2_c2_m,
-    a13_t2_c2_spls_m,
-    a13_t2_c3_m,
-    a13_t2_c3_spls_m,
-    a13_t2_c4_m,
-    a13_t2_c4_spls_m,
-    a13_t2_c6_m,
-    a13_t2_c6_spls_m,
-    a13_t3_c5_m,
-    a13_t3_c5_spls_m,
-    a13_t3_c6_m,
-    a13_t3_c6_spls_m,
-    a13_t4_c2_m,
-    a13_t4_c2_spls_m,
-    a13_t4_c3_m,
-    a13_t4_c3_spls_m,
-    a13_t4_c5_m,
-    a13_t4_c5_spls_m,
-    art_13_outfile
-)
+save(a13_t2_c2_m, a13_t2_c2_spls_m, file = "MulTE/Art_13_v2.RData")
+rm(art_13_t2_fp, art_13_cov_cont, art_13_t2_df, art_13_t2_spline_df, a13_t2_spl_df_c1234,
+    a13_t2_c2_tc, a13_t2_c2_cont, a13_t2_c2_m, a13_t2_c2_spls_m, clean_art13)
 
 
 ###############################################################################
@@ -661,260 +361,16 @@ a14_spls_m <- multe_spline_regression(
     cluster_var = a14_spl_df$siteno, na_action = TRUE
 )
 
-
-#' Not doing columns 3-8 because the only difference in the regression is
-#' the inclusion of an interaction term on the original regression, while
-#' all solutions already do that to calculate the respective estimands.
-#' Therefore, they are repeated results.
-#' Only the first one is reported.
-
-#' Covariates on (2)
-#' categ: wall, someschool, senior, notfarmer, bank, employed, busia, funded, market
-#' cont: hhsize, age, chickens, electrification, population
-#' Interacted variables on other columns:
-#' (3) wall, (4) someschool, (5) electrification, (6) prop200m2, (7) black, (8) earn
-#' not in (2): prop200m2, black, earn → should I make these regressions as well?
-
 #' 4 - Saving Output and Cleaning memory
 save(a14_m, a14_spls_m, file = "MulTE/Art_14_Final.RData")
 
 rm(a14_tc, a14_m, a14_spls_m, art_14_df, art_14_spline_df,
-   a14_spl_df, art_14_fp, art_14_cov_cont, a14_cat, a14_cont)
+   a14_spl_df, art_14_fp, art_14_cov_cont, a14_cat, a14_cont,
+   clean_art14)
 
 
 ###############################################################################
-# Article 16 - Are Referees and Editors in Economics Gender Neutral? ----------
-###############################################################################
-
-#' 1 - Setup
-a16_fp <- "Data/16_T6_data_clean.dta"
-a16_covs_cont <- c("umodel", "uempirical", "upolicy",
-                   "Field_frGender", "Field_frF_5yr",
-                   "asum1", "asum2", "asum3", "asum4")
-
-#' 2 - Creating Splines
-a16_df <- clean_art16(a16_fp)
-a16_spl_df <- create_splines(data = a16_df, covariates = a16_covs_cont)
-
-field_fr_vars <- names(a16_spl_df)[str_starts(names(a16_spl_df), "fr_")]
-two_digit_JEL_vars <- names(a16_spl_df)[str_starts(names(a16_spl_df), "JEL_fr")]
-
-
-#' 3 - Regressions
-
-# Column 2 → foco nas especificações com fields
-a16_c2_treat_categ <- paste("Gender_Auth_2", "as.factor(Pubs35_l5yr)",
-                            "as.factor(auth_count)",
-                            paste(field_fr_vars, collapse = " + "),
-                            "as.factor(journal_year_key) + ", sep = " + ")
-
-a16_c2_m <- multe_simple_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c2_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Drop due to collinearity: fr_other;
-# Fail overlap
-# The following variables have no within-treatment variation and are dropped:
-# as.factor(Pubs35_l5yr)2, as.factor(Pubs35_l5yr)3, as.factor(Pubs35_l5yr)4,
-# as.factor(Pubs35_l5yr)6, as.factor(auth_count)2, as.factor(auth_count)3,
-#  as.factor(auth_count)4, fr_micro, fr_theory, fr_metrics, fr_macro,
-# fr_internat,fr_fin, fr_pub, fr_labor, fr_healthurblaw, fr_hist, fr_io,
-# fr_dev, fr_lab, Field_frGender, Field_frF_5yr
-
-a16_c2_spls_m <- multe_spline_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c2_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Drop due to collinearity: fr_other, Field_frGender_knot1, Field_frGender_knot2
-# Fail overlap
-# The following variables have no within-treatment variation and are dropped:
-# as.factor(Pubs35_l5yr)2, as.factor(Pubs35_l5yr)3, as.factor(Pubs35_l5yr)4,
-# as.factor(Pubs35_l5yr)6, as.factor(auth_count)2, as.factor(auth_count)3,
-# as.factor(auth_count)4, fr_micro, fr_theory, fr_metrics, fr_macro,
-# fr_internat, fr_fin, fr_pub, fr_labor, fr_healthurblaw, fr_hist, fr_io,
-# fr_dev, fr_lab, Field_frGender_pow1, Field_frGender_pow2, Field_frGender_pow3,
-# Field_frF_5yr_pow1, Field_frF_5yr_pow2, Field_frF_5yr_pow3, Field_frF_5yr_knot1, Field_frF_5yr_knot2
-
-# Ou seja, saíram todas as potências das splines, e praticamente todos os knots
-
-
-# a partir daqui, chance de ter mais colunas que linhas
-# Column 3
-a16_c3_treat_categ <- paste("Gender_Auth_2", "as.factor(Pubs35_l5yr)",
-                            "as.factor(auth_count)",
-                            paste(two_digit_JEL_vars, collapse = " + "),
-                            "as.factor(journal_year_key) + ", sep = " + ")
-
-a16_c3_m <- multe_simple_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c3_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Error in solve.default(He[idx1, idx1, drop = FALSE], He[idx1, -idx1, drop = FALSE]) : 
-#  Lapack routine dgesv: system is exactly singular: U[2,2] = 0
-
-a16_c3_spls_m <- multe_spline_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c3_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Error in solve.default(He[idx1, idx1, drop = FALSE], He[idx1, -idx1, drop = FALSE]) : 
-#  Lapack routine dgesv: system is exactly singular: U[4,4] = 0
-
-# Column 4
-a16_c4_treat_categ <- paste("Gender_Auth_2", "as.factor(Pubs35_l5yr)",
-                            "as.factor(auth_count)",
-                            paste(two_digit_JEL_vars, collapse = " + "),
-                            "as.factor(journal_year_key) + ", sep = " + ")
-
-a16_c4_m <- multe_simple_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c4_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr", "asum1", "asum2", "asum3", "asum4")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Error in solve.default(He[idx1, idx1, drop = FALSE], He[idx1, -idx1, drop = FALSE]) : 
-#  Lapack routine dgesv: system is exactly singular: U[1,1] = 0
-
-a16_c4_spls_m <- multe_spline_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c4_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr", "asum1", "asum2", "asum3", "asum4")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Error in solve.default(He[idx1, idx1, drop = FALSE], He[idx1, -idx1, drop = FALSE]) : 
-#  Lapack routine dgesv: system is exactly singular: U[1,1] = 0
-
-
-# Column 5
-a16_c5_treat_categ <- paste("Gender_Auth_2", "as.factor(Pubs35_l5yr)",
-                            "as.factor(auth_count)", "utheorem2", "utheorem3",
-                            "umath2", "umath3", "uesteq2", "uesteq3",
-                            paste(two_digit_JEL_vars, collapse = " + "),
-                            "as.factor(journal_year_key) + ", sep = " + ")
-
-a16_c5_m <- multe_simple_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c5_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr", "umodel", "uempirical", "upolicy")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Error in solve.default(He[idx1, idx1, drop = FALSE], He[idx1, -idx1, drop = FALSE]) : 
-#  Lapack routine dgesv: system is exactly singular: U[1,1] = 0
-
-a16_c5_spls_m <- multe_spline_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c5_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr", "umodel", "uempirical", "upolicy")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Multiple columns dropped due to collinearity
-# Sample for efficient common weights is empty.
-# Failed overlap
-# Multiple variables have no within-treatment variation, and were dropped.
-
-
-# Column 6
-a16_c6_treat_categ <- paste("Gender_Auth_2", "as.factor(Pubs35_l5yr)",
-                            "as.factor(auth_count)", "utheorem2", "utheorem3",
-                            "umath2", "umath3", "uesteq2", "uesteq3",
-                            paste(two_digit_JEL_vars, collapse = " + "),
-                            "as.factor(journal_year_key) + ", sep = " + ")
-
-a16_c6_m <- multe_simple_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c6_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr", "umodel", 
-                  "uempirical", "upolicy","asum1", "asum2", "asum3", "asum4")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Error in solve.default(He[idx1, idx1, drop = FALSE], He[idx1, -idx1, drop = FALSE]) : 
-#  Lapack routine dgesv: system is exactly singular: U[4,4] = 0
-
-a16_c6_spls_m <- multe_spline_regression(
-    df = a16_spl_df,
-    depvar = "asinhGS_2019",
-    treat_categ = a16_c6_treat_categ,
-    treat_name = "Gender_Auth_2",
-    cont_vars = c("Field_frGender", "Field_frF_5yr", "umodel",
-                  "uempirical", "upolicy","asum1", "asum2", "asum3", "asum4")
-    # REMEMBER: heteroskedasticity-robust SEs
-)
-# Error in solve.default(He[idx1, idx1, drop = FALSE], He[idx1, -idx1, drop = FALSE]) : 
-#  Lapack routine dgesv: system is exactly singular: U[4,4] = 0
-
-
-#' 4- Saving Output and Cleaning memory
-
-#dir.create("MulTE", showWarnings = FALSE, recursive = TRUE)
-art_16_outfile <- "MulTE/Art_16.RData"
-
-save(
-    a16_c2_m,
-    a16_c2_spls_m,
-    a16_c5_spls_m,
-    file = art_16_outfile
-)
-
-rm(
-    a16_df,
-    a16_spl_df,
-    a16_covs_cont,
-    field_fr_vars,
-    two_digit_JEL_vars,
-    a16_c2_treat_categ,
-    a16_c2_m,
-    a16_c2_spls_m,
-    a16_c3_treat_categ,
-    a16_c3_m,
-    a16_c3_spls_m,
-    a16_c4_treat_categ,
-    a16_c4_m,
-    a16_c4_spls_m,
-    a16_c5_treat_categ,
-    a16_c5_m,
-    a16_c5_spls_m,
-    a16_c6_treat_categ,
-    a16_c6_m,
-    a16_c6_spls_m,
-    a16_fp,
-    art_16_outfile
-)
-
-###############################################################################
-# Paul 1 - STAR ---------------------------------------------------------
-###############################################################################
-
-#' Not included in the analysis due to the regression
-#' specification not having continuous covariates: y ~ treatment + FE_school
-
-
-###############################################################################
-# Paul 2 - DUFLO: Table 2A(1) --------------------------------------
+# GPHK 2 - DUFLO: Table 2A(1) --------------------------------------
 ###############################################################################
 dt2 <- read_dta("Data/duflo.dta")
 dt2$treatment <- (dt2$Uonly == 1) + 2 * (dt2$Honly == 1) +
@@ -928,15 +384,13 @@ r2 <- lm(dropout05v3 ~ treatment +  date05v3 + date07v2 + yrbirth_all +
              yrbirth_missing + schsize + stratum, data=dt2)
 r2$clust <- factor(dt2$sch03v1)[-na.action(r2)]
 a2 <- multe::multe(r2, treatment="treatment", cluster = r2$clust)
-#write_rd_table(a2, col=2, file="output/duflo", digits=3)
-# failed overlap; 
+# failed overlap;
 # The following variables have no within-treatment variation and are dropped:
 # date05v3, date07v2, schsize
 
 # Creating Splines
 dt2_cont <- c("yrbirth_all", "schsize")
 dt2_spls_df <- create_splines(data = dt2, covariates = dt2_cont)
-#cont: yrbirth_all, schize
 
 dt2_spls <- paste(get_variable_splines(data = dt2_spls_df, variable = dt2_cont), collapse = " + ")
 dt2_formula <- paste("dropout05v3 ~ treatment +  date05v3 + date07v2 + yrbirth_missing + ",
@@ -948,7 +402,6 @@ a2_spl <- multe::multe(r2_m, treatment="treatment", cluster = r2_m$clust)
 # Fail overlap
 # The following variables have no within-treatment variation and are dropped:
 # date05v3, date07v2, schsize_pow1, schsize_pow2, schsize_pow3, schsize_knot1, schsize_knot2
-# => droppou toda schsize...., tal qual na regressão anterior!
 
 save(a2, a2_spl, file = "MulTE/Duflo.RData")
 
@@ -956,7 +409,7 @@ rm(dt2, dt2_cont, dt2_spls_df, dt2_spls, dt2_formula,r2, r2_m,
     a2, a2_spl, dt2_outfile)
 
 ###############################################################################
-# Paul 3 - FRYER-LEVITT --------------------------------------------
+# GPHK 3 - FRYER-LEVITT --------------------------------------------
 ###############################################################################
 fl <- multe::fl
 r3 <- lm(std_iq_24~race+factor(age_24)+female+SES_quintile+
@@ -967,26 +420,15 @@ r3 <- lm(std_iq_24~race+factor(age_24)+female+SES_quintile+
              factor(interviewer_ID_24), weight=W2C0, data=fl)
 ## Expect warning that LM test is sensitive to numerical tolerance
 testthat::expect_warning(a3 <- multe::multe(r3, "race"))
-#write_rd_table(a3, col=2, file="output/fryer_levitt", digits=3)
 # These columns are dropped due to collinearity: multiple_birthNot ascertained
 # overlap failed
 # The following variables have no within-treatment variation and are dropped:
 # factor(siblings)6, mom_age_NATRUE, days_premature56, days_premature70, multiple_birthHigher order
 
-# factor: SES_quintile, family_structure, region, birthweight, multiple_birth
 
 # Creating Splines
-
-#fl_cont <- c("SES_quintile", paste0("mom_age_5_", 1:5), paste0("parent_score_5_", 1:5),
-#             "birthweight", "days_premature")
 fl_cont <- c("mom_age", "parent_score")
 fl_spls_df <- create_splines(data = fl, covariates = fl_cont)
-# cont: SES_quintile, mom_age_5, parent_score_5, birthweight, days_premature
-#' eu acho que deveria incluir days_premature como uma variável contínua e não como as.factor
-#' pois o factor tem 13 níveis; o problema é que a regressão original tem 12 dummies,
-#' e colocar como variável contínua não leva ao mesmo resultado...
-#' não vou colocar!
-
 
 fl_spls <- paste(get_variable_splines(data = fl_spls_df, variable = fl_cont), collapse = " + ")
 fl_formula <- paste("std_iq_24~race+factor(age_24)+female+SES_quintile+
@@ -1017,7 +459,7 @@ rm(fl, fl_cont, fl_spls_df, fl_spls, fl_formula, r3, a3_spl,
 
 
 ###############################################################################
-# Paul 4 - RIM --------------------------------------------
+# GPHK 4 - RIM --------------------------------------------
 ###############################################################################
 dt4 <- read_dta("Data/rim.dta")
 ## Group is cohort. Only 20 native americans, drop them
@@ -1028,7 +470,6 @@ r4 <- lm(awd_perf ~ race + female + factor(birth_year) + I(poly(tenure, 3)) +
              I(poly(L_trr_new, 3)) + factor(group),
          data=dt4[!is.na(dt4$L_cmpl_civ) & !is.na(dt4$tenure), ])
 a4 <- multe::multe(r4, "race", cluster=r4$model$"factor(group)")
-#write_rd_table(a4, col=2, file="output/rim", digits=3)
 
 # Creating Splines
 dt4 <- dt4[!is.na(dt4$L_cmpl_civ) & !is.na(dt4$tenure), ]
@@ -1048,15 +489,12 @@ a4_spl <- multe::multe(r4_m, treatment="race", cluster=r4_m$model$"factor(group)
 # The following variables have no within-treatment variation and are dropped:
 # factor(birth_year)1967, factor(birth_year)1969, factor(birth_year)1970, factor(birth_year)1972, factor(birth_year)1973, factor(birth_year)1976, factor(birth_year)1977, factor(birth_year)1978, factor(birth_year)1979, factor(birth_year)1982, factor(birth_year)1984, factor(birth_year)1985, factor(birth_year)1986, factor(birth_year)1987, factor(birth_year)1988, factor(birth_year)1989, tenure_knot1, L_cmpl_civ_pow3, L_cmpl_civ_knot2, L_trr_new_knot2
 
-dt4_outfile <- "MulTE/Rim.RData"
+save(a4, a4_spl, file = "MulTE/Rim.RData")
 
-save(a4, a4_spl, file = dt4_outfile)
-
-rm(dt4, dt4_cont, dt4_spls_df, dt4_spls, dt4_formula, r4, a4_spl,
-    dt4_outfile, r4_m, a4)
+rm(dt4, dt4_cont, dt4_spls_df, dt4_spls, dt4_formula, r4, a4_spl, r4_m, a4)
 
 ###############################################################################
-# Paul 5 - BENHASSINE --------------------------------------------
+# GPHK 5 - BENHASSINE --------------------------------------------
 ###############################################################################
 
 dt5 <- read_dta("Data/benhassine.dta")
@@ -1078,8 +516,6 @@ r5$cluster <- dt5$schoolid[-attr(r5$model, "na.action")]
 a5 <- multe::multe(r5, treatment="treatment", cluster = r5$cluster)
 # Dropped due to collinearity: bs_neverenrolled08_miss
 # Fail overlap
-#write_rd_table(a5, col=2, file="output/benhassine", digits=3)
-
 
 # Creating Splines
 dt5_cont <- c("bs_pchildren_enrolled", "age_baseline", "bs_inschool08", "bs_neverenrolled08", "prel_elec", "prel_inacc_winter")
@@ -1106,13 +542,13 @@ rm(dt5, dt5_cont, dt5_spls_df, dt5_spls, dt5_formula, r5, a5_spl,
 
 
 ###############################################################################
-# Paul 6 - WEISBURST --------------------------------------------
+# GPHK 6 - WEISBURST --------------------------------------------
 ###############################################################################
 
 dt6 <- read_dta("Data/weisburst.dta")
-dt6 <- dt6[dt6$prace==0, ]#"White", ]
+dt6 <- dt6[dt6$prace==0, ]
 dt6$beat <- factor(dt6$beat)
-dt6$race <- factor(dt6$race, levels = 0:3, 
+dt6$race <- factor(dt6$race, levels = 0:3,
                    labels = c("White", "Black", "Hispanic", "Other"))
 r6 <- lm(force_rate_x ~ race + pblack_x + phispanic_x + pother_x + aage_x +
              afemale_x + page_x + pfemale_x + ptrainee_x + pexperience_x +
@@ -1120,7 +556,6 @@ r6 <- lm(force_rate_x ~ race + pblack_x + phispanic_x + pother_x + aage_x +
              prostitution_x + traffic_x + factor(halfyear) + beat,
          data=dt6)
 a6 <- multe::multe(r6, treatment="race", cluster = r6$model$beat)
-#write_rd_table(a6, col=1, file="output/weisburst", digits=3)
 
 # Creating Splines
 dt6_cont <- c("pblack_x", "phispanic_x", "pother_x", "aage_x",
@@ -1144,19 +579,10 @@ rm(dt6, dt6_cont, dt6_spls_df, dt6_spls, r6_formula, r6, a6_spl,
     r6_m, a6, dt6_categ)
 
 ###############################################################################
-# Paul 7 - COLE --------------------------------------------
-###############################################################################
-
-#' Not included in the analysis due to the absence of continuous
-#' covariates in the regression specification:
-#' Y ~ treatment + Wave_Dummy + FE_Village
-
-###############################################################################
-# Paul 8 - DREXLER --------------------------------------------
+# GPHK 8 - DREXLER --------------------------------------------
 ###############################################################################
 
 ## Warning that factor levels are duplicated
-#testthat::expect_warning(dt8 <- read_dta("Data/drexler.dta"))
 dt8 <- read_dta("Data/drexler.dta")
 dt8$treatment <- factor(dt8$treatment, levels = 0:2,
                         labels = c("Control", "Standard Accounting", "Rule-of-Thumb"))
@@ -1164,15 +590,6 @@ r8 <- lm(e_keepAcct ~ treatment +i_bus1 + i_bus2 + i_bus3 + i_bus4 +
              monto_dese + savings + b_keepAcct, data=dt8)
 r8$cluster <- as.factor(dt8$barrio)[-attr(r8$model, "na.action")]
 a8 <- multe::multe(r8, treatment="treatment", cluster = r8$cluster)
-#write_rd_table(a8, col=1, file="output/drexler", digits=3)
-
-# checking for continuous covariates:
-for(var in c("i_bus1","i_bus2","i_bus3","i_bus4",
-             "monto_dese", "savings", "b_keepAcct")){
-    print(var)
-    print(unique(dt8[[var]]))
-}
-# cont: monto_dese
 
 # Creating Splines
 dt8_cont <- c("monto_dese")
@@ -1188,14 +605,4 @@ a8_spl <- multe::multe(r8_m, treatment="treatment", cluster = r8_m$cluster)
 
 save(a8, a8_spl, file = "MulTE/Drexler.RData")
 
-rm(dt8, dt8_cont, dt8_spls_df, dt8_spls, r8_formula, r8, a8_spl,
-    dt8_outfile, r8_m, a8, dt8_categ, var)
-
-
-###############################################################################
-# Paul 9 - DE MEL --------------------------------------------
-###############################################################################
-
-#' Not included in the analysis due to the absence of continuous
-#' covariates in the regression specification:
-#' Y ~ treatment + Strata
+rm(dt8, dt8_cont, dt8_spls_df, dt8_spls, r8_formula, r8, a8_spl, r8_m, a8, dt8_categ)
