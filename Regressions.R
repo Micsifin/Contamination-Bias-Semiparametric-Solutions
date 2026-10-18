@@ -19,7 +19,7 @@ for(lib in install.lib) install.packages(lib,dependencies=TRUE)
 sapply(load.lib, require, character=TRUE)
 remove(install.lib, lib, load.lib)
 
-#setwd("/home/micsifin/transfer/Estudos/FGV-EESP/IC/Replication_Package")
+setwd("") # Insert you wd here
 
 # Functions to load
 source("Functions.R")
