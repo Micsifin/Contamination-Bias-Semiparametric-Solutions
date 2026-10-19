@@ -8,9 +8,9 @@ Replication Package/
 ├── Functions.R                          (hosts necessary functions)
 ├── Regressions.R                        (runs all regressions necessary)
 ├── tables-figures.R                     (makes tables and figures)
-├── Data/                                (hosts all regression data)
+├── Data/                                (hosts all data)
 |   └── ...
-├── Multe/                               (should be created, should hold regression results)
+├── Multe/                               (should be created, should hold regression/MulTE results)
 |   └── ...
 ├── Output Images/                       (should be created, should hold resulting images)
 |   └── ...
@@ -19,3 +19,7 @@ Replication Package/
 ```
 
 To replicate the paper's results, first set the working directory in the beginning of the `Regressions.R` and `tables-figures.R`. Then, run the entire `Regressions.R` code, and then `tables-figures.R`. The corresponding files with the tables and images should be in the correct files afterwards.
+
+## Data availability
+
+All the data used in the paper is available in the `Data/` folder. The data used in this paper is publicly available on each of the replicated articles' replication package.
