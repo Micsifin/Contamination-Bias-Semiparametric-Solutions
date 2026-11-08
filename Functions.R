@@ -5,43 +5,6 @@
 # 3 - Identify splines from specific columns
 # 4 - Run regressions with MulTE
 # 5 - Make the tables with all coefficients
-# The function that makes the LaTeX tables was adapted from replication package
-# from Goldsmith Pinkham, Hull and Kolesár (2024).
-# This function exports a different set of estimates.
-# In this case, it does not export own_est, own_se, bias_est, or bias_se.
-# But it does export ate_se, ew_se, cw_se, t_estat_reg
-export_est_se <- function(a) {
-    est <- if(is.null(a$est_o)) a$est_f else a$est_o
-    #cb <- if(is.null(a$cb_o)) a$cb_f else a$cb_o
-    row <- (seq.int(nrow(est)/3)-1)*3+1
-    #row_cb <- (seq.int(nrow(est)/3)-1)*2+1
-    d <- data.frame(treatment=row.names(est[row, ]),
-                    reg_est=est[row, 1],
-                    ate_est=est[row, 3],
-                    ew_est=est[row, 4],
-                    cw_est=est[row, 5],
-                    reg_se=est[row+1, 1],
-                    ate_se=est[row+1, 3],
-                    ew_se=est[row+1, 4],
-                    cw_se=est[row+1, 5])
-    rownames(d) <- NULL
-    d
-}
-
-#' these functions are only for collecting and exporting exclusively the alternate ATE estimates + appending spline
-
-#a <- a10_m
-#a_spline <- a10_spl_m
-#View(data.frame(a$est_f))
-#View(data.frame(a$cb_f))
-
-bind_spline <- function(a, a_spline) {
-  a$est_f <- cbind(a$est_f, a_spline$est_f[, "ATE"])
-  a$cb_f <- cbind(a$cb_f, a_spline$cb_f[, "ATE"])
-  a$est_o <- cbind(a$est_o, a_spline$est_o[, "ATE"])
-  a$cb_o <- cbind(a$cb_o, a_spline$cb_o[, "ATE"])
-  a
-}# This code was made with the help of GitHub Copilot.
 ###############################################################################
 
 ###############################################################################
