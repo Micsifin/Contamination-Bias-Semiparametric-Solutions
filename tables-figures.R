@@ -43,7 +43,7 @@ load("MulTE/Drexler.RData")
 
 
 # -----------------------------
-# Make Appendix Tables
+# Make MulTE Regression Tables
 # -----------------------------
 
 # Tables A.2 - A.5; Dellavigna et al. (2022)
@@ -79,7 +79,6 @@ coeffs_table_spl(a3, a3_spl, file = "Output Tables/fl2")
 
 # Table A.15 - Rim et al. (2020)
 coeffs_table_spl(a4, a4_spl, file = "Output Tables/rim2")
-
 
 # Table 1 - Weisburst (2019)
 coeffs_table_spl(a6, a6_spl, file = "Output Tables/weisburst")
@@ -274,10 +273,11 @@ sum(abs(d2$norm_dif) > 0.2) # 42/141
 # Benchmark 2: difference > 95th percentile of N(0,1)
 sum(abs(d2$norm_dif) > 1.645) # 11/141
 
-### Table 2 - quantile table
+### Table 2 - SE ratio quantile table
 # The resulting table was later manually edited.
 # For example, 0% and 100% were substituted for "Min" and "Max", respectively.
 # Also, "Yes" and "No" were substituted for \checkmark and \xmark, respectively.
+# This table was made with the help of GitHub Copilot.
 probs <- c(0, 0.25, 0.5, 0.75, 0.80, 0.85, 0.9, 0.95, 1)
 quantile(d2$se_ratio_without, probs = probs)
 quantile(d2$se_ratio_spline, probs = probs)
@@ -317,3 +317,40 @@ latex_text <- as.character(latex_output)
 latex_text <- gsub("\\\\centering\\\\arraybackslash ", "", latex_text)
 
 writeLines(latex_text, "Output Tables/SE_ratio_quantiles.tex")
+
+### Table 3 - Spline SE ratio quantile table
+# This table was made with the help of GitHub Copilot.
+
+quantile(d2$se_TE_ratio, probs = probs)
+ate_te_ratio <- quantile(subset(d2, est_type == "ate")$se_TE_ratio, probs = probs)
+ew_te_ratio <- quantile(subset(d2, est_type == "ew")$se_TE_ratio, probs = probs)
+cw_te_ratio <- quantile(subset(d2, est_type == "cw")$se_TE_ratio, probs = probs)
+
+quantiles_df_2 <- data.frame(
+    Estimator = c("ATE", "EW", "CW"),
+    rbind(ate_te_ratio, ew_te_ratio, cw_te_ratio),
+    row.names = NULL
+)
+
+# Round for nicer display
+quantiles_df_2[, -c(1)] <- round(quantiles_df_2[, -c(1)], 3)
+
+# Fix column names: convert X0. to 0%, X25. to 25%, etc.7
+colnames(quantiles_df_2) <- c("Estimator", "Min", "10%", "35%",
+                                    "50%", "75%", "90%", "Max")
+
+# Create and save the table
+latex_output_2 <- kable(quantiles_df_2,
+                      format = "latex",
+                      caption = "Spline SE ratio Quantile by Estimator",
+                      label = "TE-quantiles",
+                      booktabs = TRUE,
+                      align = c("c", rep("c", length(probs)))) %>%
+    collapse_rows(columns = 1, valign = "middle") %>%
+    kable_styling(latex_options = "hold_position")
+
+# Post-process to remove \centering\arraybackslash
+latex_text_2 <- as.character(latex_output_2)
+latex_text_2 <- gsub("\\\\centering\\\\arraybackslash ", "", latex_text_2)
+
+writeLines(latex_text_2, "Output Tables/spline_SE_ratio_quantiles.tex")
